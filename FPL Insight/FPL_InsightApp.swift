@@ -11,7 +11,7 @@ import SwiftUI
 struct FPL_InsightApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            SplashView()
         }
     }
 }
