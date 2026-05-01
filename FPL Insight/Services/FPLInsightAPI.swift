@@ -21,14 +21,14 @@ struct FPLInsightAPI {
             responseType: BestXIResponse.self
         )
     }
-    
+
     func fetchTopPlayers(limit: Int = 20) async throws -> TopPlayerResponse {
         try await apiClient.request(
             urlString: "\(baseURL)/api/v1/players/top-total-points?limit=\(limit)",
             responseType: TopPlayerResponse.self
         )
     }
-    
+
     func fetchAllPlayers(
         limit: Int = 20,
         q: String? = nil,

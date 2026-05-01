@@ -1,3 +1,10 @@
+//
+//  TopPlayerResponse.swift
+//  FPL Insight
+//
+//  Created by Shimanto A. on 1/5/26.
+//
+
 import Foundation
 
 struct TopPlayerResponse: Codable {
@@ -8,13 +15,16 @@ struct TopPlayerResponse: Codable {
 }
 
 struct TopPlayer: Codable, Identifiable {
-    let id = UUID()
     let name: String
     let position: String
     let team: String
     let opponentTeamName: String
     let totalPoints: Int
     let imageURL: String?
+
+    var id: String {
+        "\(name)-\(team)-\(position)"
+    }
 
     enum CodingKeys: String, CodingKey {
         case name

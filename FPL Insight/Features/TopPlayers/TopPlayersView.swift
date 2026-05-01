@@ -1,5 +1,5 @@
 //
-//  PlayersView.swift
+//  TopPlayersView.swift
 //  FPL Insight
 //
 //  Created by Shimanto A. on 23/4/26.
@@ -61,9 +61,9 @@ struct TopPlayersView: View {
         .task {
             await viewModel.fetchTopPlayers()
         }
-//        .refreshable {
-//            await viewModel.fetchTopPlayers()
-//        }
+        .refreshable {
+            await viewModel.fetchTopPlayers()
+        }
     }
 }
 

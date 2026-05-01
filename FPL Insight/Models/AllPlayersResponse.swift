@@ -7,7 +7,6 @@
 
 import Foundation
 
-
 struct AllPlayersResponse: Codable {
     let season, gameweek: Int
     let query: String?
