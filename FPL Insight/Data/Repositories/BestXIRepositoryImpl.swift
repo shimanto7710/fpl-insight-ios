@@ -6,7 +6,7 @@
 struct BestXIRepositoryImpl: BestXIRepository {
     private let api: any FPLInsightAPIProtocol
 
-    init(api: any FPLInsightAPIProtocol = FPLInsightAPI()) {
+    init(api: any FPLInsightAPIProtocol = FallbackFPLInsightAPI()) {
         self.api = api
     }
 

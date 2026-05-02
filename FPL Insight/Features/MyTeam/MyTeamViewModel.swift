@@ -38,7 +38,7 @@ final class MyTeamViewModel: ObservableObject {
         fieldPredictedPoints + benchPredictedPoints
     }
 
-    init(api: any FPLInsightAPIProtocol = FPLInsightAPI()) {
+    init(api: any FPLInsightAPIProtocol = FallbackFPLInsightAPI()) {
         self.api = api
 
         let formation = Self.loadSavedFormation(formationKey: formationKey)

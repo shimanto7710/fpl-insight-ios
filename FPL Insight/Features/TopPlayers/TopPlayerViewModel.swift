@@ -21,7 +21,7 @@ final class TopPlayerViewModel: ObservableObject {
         return response.players.count >= currentLimit && currentLimit < maxLimit
     }
 
-    init(api: any FPLInsightAPIProtocol = FPLInsightAPI()) {
+    init(api: any FPLInsightAPIProtocol = FallbackFPLInsightAPI()) {
         self.api = api
     }
 
