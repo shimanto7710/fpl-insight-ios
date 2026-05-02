@@ -4,6 +4,17 @@ FPL Insight is an iOS-first Fantasy Premier League companion app that turns a cu
 
 This project showcases the full path from model development to product: I built the ML model from scratch, exposed the predictions through a FastAPI backend, containerized the service with Docker, deployed it on AWS, and then built the iOS client that consumes the API.
 
+## Recent iOS Improvements
+
+I recently improved the iOS architecture to make the app easier to maintain, test, and extend:
+
+- Added protocol-based API integration with `FPLInsightAPIProtocol`.
+- Updated view models to depend on the API protocol instead of the concrete API implementation.
+- Added SwiftData offline storage for saved My Team players.
+- Kept formation as a lightweight `UserDefaults` preference.
+- Added focused Swift Testing unit tests for `BestXIViewModel`.
+- Cleaned the tab model by renaming the My Team tab case from `settings` to `myTeam`.
+
 ## Why I Built It
 
 Fantasy Premier League decisions involve a lot of moving parts: form, fixtures, player position, team strength, opponent strength, price, minutes, and recent performance. I wanted to build a project that proves I can work across the stack, but with the iOS app as the main product surface.
@@ -21,7 +32,8 @@ The app focuses on making ML predictions useful for a real user instead of only 
 - Bench section with a fixed goalkeeper slot and flexible outfield slots.
 - Player search backed by the API using query parameters.
 - Predicted points summary for the selected user team.
-- Local persistence with `UserDefaults` so the selected team and formation remain saved.
+- Offline player persistence with SwiftData for the saved My Team squad.
+- Lightweight `UserDefaults` persistence for selected formation.
 - Bottom tab navigation with separate navigation stacks for each main section.
 - Splash screen that loads into the root `HomeView`.
 
@@ -33,10 +45,13 @@ The app focuses on making ML predictions useful for a real user instead of only 
 - `NavigationStack` and `TabView`
 - `async/await` networking
 - Generic API client
+- Protocol-based API abstraction for testable view models
 - `ObservableObject` view models
 - `AsyncImage` for remote player images
-- `UserDefaults` for lightweight local persistence
-- Xcode project structure organized by app, features, models, and services
+- SwiftData for offline My Team player storage
+- `UserDefaults` for lightweight formation persistence
+- Swift Testing for focused view model tests
+- Xcode project structure organized by app, features, models, services, and persistence
 
 ## App Architecture
 
@@ -53,10 +68,13 @@ FPL Insight/
 |   +-- MyTeam/
 |   +-- TopPlayers/
 +-- Models/
++-- Persistence/
 +-- Services/
 ```
 
 `HomeView` owns the bottom tab navigation. Each tab uses its own `NavigationStack`, which keeps navigation isolated per screen. Networking is handled through a reusable `APIClient`, while `FPLInsightAPI` contains the app-specific endpoints.
+
+View models depend on `FPLInsightAPIProtocol`, which means the real API can be replaced with a mock API in tests or previews without changing screen logic. My Team players are saved with SwiftData through a `SavedSquadPlayer` model, so the selected squad can be restored offline.
 
 ## Machine Learning Pipeline
 
@@ -103,7 +121,7 @@ Shows the highest-performing players with pagination. The app loads 20 players a
 
 ### My Team
 
-Lets the user build a personal team. The screen supports formation selection, player search, position validation, bench slots, predicted point totals, and local saving.
+Lets the user build a personal team. The screen supports formation selection, player search, position validation, bench slots, predicted point totals, and offline player saving with SwiftData.
 
 ## API Integration
 
@@ -117,10 +135,25 @@ The app uses a generic API client for reusable request handling:
 
 Feature-specific calls are kept inside `FPLInsightAPI`, which makes the view models simpler and keeps endpoint details out of the UI layer.
 
+The app also defines `FPLInsightAPIProtocol`, so view models are not tightly coupled to the live API implementation. This makes the architecture easier to test and keeps networking replaceable.
+
+## Offline Persistence
+
+My Team player selections are saved locally with SwiftData. The app defines a `SavedSquadPlayer` model and registers it in the app-level model container. When the My Team screen appears, it loads saved players from SwiftData and places them back into the correct pitch or bench slots.
+
+Formation is saved separately in `UserDefaults` because it is a single lightweight preference.
+
+## Testing
+
+The project includes focused unit tests for `BestXIViewModel` using Swift Testing. The tests use a mock API implementation to verify both success and failure states without calling the real backend.
+
 ## What This Project Demonstrates
 
 - Building a production-style SwiftUI app from a real API.
 - Structuring an iOS project around features, models, and services.
+- Using protocol-based dependency injection for API access.
+- Saving app data offline with SwiftData.
+- Writing focused Swift Testing unit tests.
 - Consuming ML predictions in a mobile product.
 - Designing user flows around real football/FPL decision making.
 - Training and deploying a custom ML model.
@@ -132,7 +165,7 @@ Feature-specific calls are kept inside `FPLInsightAPI`, which makes the view mod
 - Add player detail screens with historical stats and prediction explanation.
 - Add transfer recommendations based on user budget.
 - Add captain and vice-captain optimization.
-- Add unit tests for API decoding and view model state handling.
+- Add more unit tests for My Team formation and persistence logic.
 
 ## Author
 
