@@ -1,11 +1,17 @@
 import Foundation
 @testable import FPL_Insight
 
-struct MockFetchBestXIUseCase: FetchBestXIUseCaseProtocol {
+final class MockFetchBestXIUseCase: FetchBestXIUseCaseProtocol {
     var result: Result<BestXIResponse, Error> = .success(TestData.bestXIResponse)
+    private(set) var executeCallCount = 0
+
+    init(result: Result<BestXIResponse, Error> = .success(TestData.bestXIResponse)) {
+        self.result = result
+    }
 
     func execute() async throws -> BestXIResponse {
-        try result.get()
+        executeCallCount += 1
+        return try result.get()
     }
 }
 
