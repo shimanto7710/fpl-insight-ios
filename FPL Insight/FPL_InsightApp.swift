@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct FPL_InsightApp: App {
@@ -13,5 +14,6 @@ struct FPL_InsightApp: App {
         WindowGroup {
             SplashView()
         }
+        .modelContainer(for: SavedSquadPlayer.self)
     }
 }

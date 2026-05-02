@@ -10,7 +10,7 @@ import Foundation
 enum AppTab: Hashable {
     case bestXI
     case players
-    case settings
+    case myTeam
 
     var title: String {
         switch self {
@@ -18,7 +18,7 @@ enum AppTab: Hashable {
             "Best XI"
         case .players:
             "Players"
-        case .settings:
+        case .myTeam:
             "My Team"
         }
     }
@@ -29,7 +29,7 @@ enum AppTab: Hashable {
             "sportscourt"
         case .players:
             "person.3"
-        case .settings:
+        case .myTeam:
             "person.crop.rectangle.stack"
         }
     }

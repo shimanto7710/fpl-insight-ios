@@ -6,8 +6,10 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct MyTeamView: View {
+    @Environment(\.modelContext) private var modelContext
     @StateObject private var viewModel = MyTeamViewModel()
 
     var body: some View {
@@ -39,6 +41,9 @@ struct MyTeamView: View {
         .sheet(item: $viewModel.selectedSlot) { slot in
             PlayerPickerView(viewModel: viewModel, slot: slot)
         }
+        .onAppear {
+            viewModel.configure(modelContext: modelContext)
+        }
     }
 }
 
@@ -46,4 +51,5 @@ struct MyTeamView: View {
     NavigationStack {
         MyTeamView()
     }
+    .modelContainer(for: SavedSquadPlayer.self, inMemory: true)
 }

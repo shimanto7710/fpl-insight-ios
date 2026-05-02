@@ -7,6 +7,7 @@
 
 import Combine
 import Foundation
+import SwiftData
 
 @MainActor
 final class MyTeamViewModel: ObservableObject {
@@ -17,8 +18,10 @@ final class MyTeamViewModel: ObservableObject {
     @Published var searchText = ""
     @Published var selectedSlot: SquadSlot?
 
-    private let api: FPLInsightAPI
-    private let storageKey = "my_team_squad"
+    private let api: any FPLInsightAPIProtocol
+    private let formationKey = "my_team_formation"
+    private var modelContext: ModelContext?
+    private var didLoadSavedPlayers = false
     private var searchTask: Task<Void, Never>?
 
     var fieldPredictedPoints: Int {
@@ -37,18 +40,21 @@ final class MyTeamViewModel: ObservableObject {
         fieldPredictedPoints + benchPredictedPoints
     }
 
-    init(api: FPLInsightAPI = FPLInsightAPI()) {
+    init(api: any FPLInsightAPIProtocol = FPLInsightAPI()) {
         self.api = api
 
-        if let savedSquad = Self.loadSavedSquad(storageKey: storageKey) {
-            selectedFormation = savedSquad.formation
-            fieldSlots = savedSquad.fieldSlots
-            benchSlots = Self.normalizedBenchSlots(from: savedSquad.benchSlots)
-        } else {
-            selectedFormation = .fourFourTwo
-            fieldSlots = Self.makeFieldSlots(for: .fourFourTwo)
-            benchSlots = Self.makeBenchSlots()
-        }
+        let formation = Self.loadSavedFormation(formationKey: formationKey)
+        selectedFormation = formation
+        fieldSlots = Self.makeFieldSlots(for: formation)
+        benchSlots = Self.makeBenchSlots()
+    }
+
+    func configure(modelContext: ModelContext) {
+        self.modelContext = modelContext
+
+        guard !didLoadSavedPlayers else { return }
+        didLoadSavedPlayers = true
+        loadSavedPlayers()
     }
 
     func updateFormation(_ formation: TeamFormation) {
@@ -61,9 +67,10 @@ final class MyTeamViewModel: ObservableObject {
             .mapValues { $0.map(\.1) }
 
         selectedFormation = formation
+        saveFormation()
         fieldSlots = Self.makeFieldSlots(for: formation, playersByRole: currentPlayersByRole)
         moveDroppedPlayersToBench(from: currentPlayersByRole)
-        saveSquad()
+        savePlayers()
     }
 
     func openPicker(for slot: SquadSlot) {
@@ -112,7 +119,7 @@ final class MyTeamViewModel: ObservableObject {
         }
 
         self.selectedSlot = nil
-        saveSquad()
+        savePlayers()
     }
 
     func clearSelectedSlot() {
@@ -125,7 +132,7 @@ final class MyTeamViewModel: ObservableObject {
         }
 
         self.selectedSlot = nil
-        saveSquad()
+        savePlayers()
     }
 
     func players(for role: SlotRole) -> [SquadSlot] {
@@ -162,20 +169,54 @@ final class MyTeamViewModel: ObservableObject {
         }
     }
 
-    private func saveSquad() {
-        let squad = SavedSquad(
-            formation: selectedFormation,
-            fieldSlots: fieldSlots,
-            benchSlots: benchSlots
-        )
-
-        guard let data = try? JSONEncoder().encode(squad) else { return }
-        UserDefaults.standard.set(data, forKey: storageKey)
+    private func saveFormation() {
+        UserDefaults.standard.set(selectedFormation.rawValue, forKey: formationKey)
     }
 
-    private static func loadSavedSquad(storageKey: String) -> SavedSquad? {
-        guard let data = UserDefaults.standard.data(forKey: storageKey) else { return nil }
-        return try? JSONDecoder().decode(SavedSquad.self, from: data)
+    private static func loadSavedFormation(formationKey: String) -> TeamFormation {
+        guard let rawValue = UserDefaults.standard.string(forKey: formationKey),
+              let formation = TeamFormation(rawValue: rawValue) else {
+            return .fourFourTwo
+        }
+
+        return formation
+    }
+
+    private func loadSavedPlayers() {
+        guard let modelContext else { return }
+        let descriptor = FetchDescriptor<SavedSquadPlayer>()
+        guard let savedPlayers = try? modelContext.fetch(descriptor) else { return }
+
+        for savedPlayer in savedPlayers {
+            if savedPlayer.isBench,
+               let index = benchSlots.firstIndex(where: { $0.id == savedPlayer.slotID }) {
+                benchSlots[index].player = savedPlayer.player
+            } else if let index = fieldSlots.firstIndex(where: { $0.id == savedPlayer.slotID }) {
+                fieldSlots[index].player = savedPlayer.player
+            }
+        }
+
+        benchSlots = Self.normalizedBenchSlots(from: benchSlots)
+    }
+
+    private func savePlayers() {
+        guard let modelContext else { return }
+        let descriptor = FetchDescriptor<SavedSquadPlayer>()
+        let existingPlayers = (try? modelContext.fetch(descriptor)) ?? []
+
+        for savedPlayer in existingPlayers {
+            modelContext.delete(savedPlayer)
+        }
+
+        for slot in fieldSlots where slot.player != nil {
+            modelContext.insert(SavedSquadPlayer(slot: slot, isBench: false))
+        }
+
+        for slot in benchSlots where slot.player != nil {
+            modelContext.insert(SavedSquadPlayer(slot: slot, isBench: true))
+        }
+
+        try? modelContext.save()
     }
 
     private static func makeFieldSlots(

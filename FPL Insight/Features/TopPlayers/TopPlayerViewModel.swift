@@ -6,7 +6,7 @@ final class TopPlayerViewModel: ObservableObject {
     @Published private(set) var state: TopPlayerState = .loading
     @Published private(set) var isLoadingNextPage = false
 
-    private let api: FPLInsightAPI
+    private let api: any FPLInsightAPIProtocol
     private let pageSize = 20
     private let maxLimit = 500
     private var currentLimit = 20
@@ -16,7 +16,7 @@ final class TopPlayerViewModel: ObservableObject {
         return response.players.count >= currentLimit && currentLimit < maxLimit
     }
 
-    init(api: FPLInsightAPI = FPLInsightAPI()) {
+    init(api: any FPLInsightAPIProtocol = FPLInsightAPI()) {
         self.api = api
     }
 

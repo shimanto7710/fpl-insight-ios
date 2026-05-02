@@ -12,9 +12,9 @@ import Foundation
 final class BestXIViewModel: ObservableObject {
     @Published private(set) var state: BestXIState = .loading
 
-    private let api: FPLInsightAPI
+    private let api: any FPLInsightAPIProtocol
 
-    init(api: FPLInsightAPI = FPLInsightAPI()) {
+    init(api: any FPLInsightAPIProtocol = FPLInsightAPI()) {
         self.api = api
     }
 

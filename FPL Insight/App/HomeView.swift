@@ -32,9 +32,9 @@ struct HomeView: View {
                 MyTeamView()
             }
             .tabItem {
-                Label(AppTab.settings.title, systemImage: AppTab.settings.systemImage)
+                Label(AppTab.myTeam.title, systemImage: AppTab.myTeam.systemImage)
             }
-            .tag(AppTab.settings)
+            .tag(AppTab.myTeam)
         }
     }
 }

@@ -40,12 +40,6 @@ struct SquadSlot: Identifiable, Codable, Equatable {
     }
 }
 
-struct SavedSquad: Codable {
-    let formation: TeamFormation
-    let fieldSlots: [SquadSlot]
-    let benchSlots: [SquadSlot]
-}
-
 enum TeamFormation: String, CaseIterable, Identifiable, Codable {
     case fourFourTwo = "4-4-2"
     case threeFourThree = "3-4-3"
