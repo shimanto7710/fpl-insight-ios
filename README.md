@@ -1,70 +1,29 @@
 # FPL Insight
 
-FPL Insight is an iOS-first Fantasy Premier League companion app that turns a custom machine learning prediction pipeline into a practical mobile experience. The goal of the project is to help FPL managers make faster squad decisions by showing predicted points, suggested lineups, top players, and a saved team builder inside a clean SwiftUI app.
+FPL Insight is an iOS Fantasy Premier League companion app powered by a custom machine learning prediction backend. The app helps users explore predicted player points, view a recommended Best XI, compare top players, and build their own saved squad.
 
-This project showcases the full path from model development to product: I built the ML model from scratch, exposed the predictions through a FastAPI backend, containerized the service with Docker, deployed it on AWS, and then built the iOS client that consumes the API.
+The project is built to showcase iOS product development first, while also demonstrating end-to-end ML, backend, Docker, and AWS deployment experience.
 
-## Recent iOS Improvements
+## Highlights
 
-I recently improved the iOS architecture to make the app easier to maintain, test, and extend:
+- SwiftUI app with bottom tab navigation and separate navigation stacks.
+- Best XI pitch view showing 15 predicted players with points, opponent, position, team, and image support.
+- My Team builder with dynamic formations, position-based player selection, searchable player picker, predicted point totals, and saved squad persistence.
+- Top Players screen with paginated API loading.
+- Generic `APIClient` using `async/await`, HTTP validation, JSON decoding, and reusable error handling.
+- Protocol-based API layer for dependency injection and testability.
+- Network-aware fallback API: live API is used when available, offline mock data is shown when there is no internet or the server fails.
+- SwiftData storage for saved My Team players and `UserDefaults` for lightweight formation persistence.
+- Clean Architecture applied to the Best XI flow with use case and repository layers.
+- Focused Swift Testing coverage for `BestXIViewModel`.
 
-- Added protocol-based API integration with `FPLInsightAPIProtocol`.
-- Applied Clean Architecture to the Best XI feature with use case and repository layers.
-- Updated view models to depend on the API protocol instead of the concrete API implementation.
-- Added SwiftData offline storage for saved My Team players.
-- Kept formation as a lightweight `UserDefaults` preference.
-- Added focused Swift Testing unit tests for `BestXIViewModel`.
-- Cleaned the tab model by renaming the My Team tab case from `settings` to `myTeam`.
+## iOS Architecture
 
-## Why I Built It
-
-Fantasy Premier League decisions involve a lot of moving parts: form, fixtures, player position, team strength, opponent strength, price, minutes, and recent performance. I wanted to build a project that proves I can work across the stack, but with the iOS app as the main product surface.
-
-The app focuses on making ML predictions useful for a real user instead of only showing a model score in a notebook.
-
-## iOS App Features
-
-- Best XI screen with a football-pitch layout for the recommended 15-player squad.
-- Player cards showing image, predicted points, position, team, and opponent.
-- Top Players screen with paginated loading, 20 players at a time.
-- My Team screen where users can build their own squad on a pitch.
-- Dynamic formation selection saved locally for future app launches.
-- Position-aware player selection, so GK, DEF, MID, and FWD slots only allow valid players.
-- Bench section with a fixed goalkeeper slot and flexible outfield slots.
-- Player search backed by the API using query parameters.
-- Predicted points summary for the selected user team.
-- Offline player persistence with SwiftData for the saved My Team squad.
-- Lightweight `UserDefaults` persistence for selected formation.
-- Bottom tab navigation with separate navigation stacks for each main section.
-- Splash screen that loads into the root `HomeView`.
-
-## iOS Tech Stack
-
-- Swift
-- SwiftUI
-- MVVM-style feature structure
-- Clean Architecture for the Best XI prediction flow
-- `NavigationStack` and `TabView`
-- `async/await` networking
-- Generic API client
-- Protocol-based API abstraction for testable view models
-- `ObservableObject` view models
-- `AsyncImage` for remote player images
-- SwiftData for offline My Team player storage
-- `UserDefaults` for lightweight formation persistence
-- Swift Testing for focused view model tests
-- Xcode project structure organized by app, features, models, services, and persistence
-
-## App Architecture
-
-The app is organized around feature ownership so each screen is easier to understand and extend.
+The app is organized by feature, with shared services and persistence kept separate.
 
 ```text
 FPL Insight/
 +-- App/
-|   +-- AppTab.swift
-|   +-- HomeView.swift
-|   +-- SplashView.swift
 +-- Features/
 |   +-- BestXI/
 |   +-- MyTeam/
@@ -79,9 +38,7 @@ FPL Insight/
 +-- Services/
 ```
 
-`HomeView` owns the bottom tab navigation. Each tab uses its own `NavigationStack`, which keeps navigation isolated per screen. Networking is handled through a reusable `APIClient`, while `FPLInsightAPI` contains the app-specific endpoints.
-
-Best XI uses a Clean Architecture flow so the screen does not depend directly on networking:
+Best XI follows a clean architecture path:
 
 ```text
 BestXIView
@@ -93,102 +50,82 @@ BestXIView
 -> APIClient
 ```
 
-This keeps the UI focused on presentation, the use case focused on app behavior, the repository focused on data access, and the API client focused on HTTP requests. Other features use a simpler MVVM structure where that level of separation is not yet needed.
+This keeps UI, business logic, data access, and networking responsibilities separated. Other features use a simpler MVVM structure where that is enough for the current scope.
 
-My Team players are saved with SwiftData through a `SavedSquadPlayer` model, so the selected squad can be restored offline.
+## Main Features
 
-## Machine Learning Pipeline
+**Best XI**  
+Displays the model-recommended squad on a football pitch layout, grouped by position with predicted points and opponent information.
 
-I trained the prediction model from scratch using `XGBRegressor`. The ML work included:
+**Top Players**  
+Shows high-performing players from the API with paginated loading, 20 players at a time.
 
-- Collecting and preparing FPL player and fixture data.
-- Cleaning inconsistent, missing, and noisy values before training.
-- Extracting useful features from historical player performance.
-- Engineering features around form, position, team, opponent, fixture context, and expected contribution.
-- Training an XGBoost regression model to predict player points.
-- Comparing XGBRegressor against other regression models to choose the best-performing approach.
-- Running hyperparameter tuning to improve model accuracy and reduce overfitting.
-- Evaluating predictions before exposing them to the backend API.
+**My Team**  
+Lets users build a personal squad, choose formation, search players by API query, validate slot positions, view predicted team points, and save selected players offline.
 
-XGBRegressor was selected because it performs well on structured tabular data, handles nonlinear relationships, and works effectively with engineered football/FPL features.
+## API and Offline Flow
 
-## Backend and Deployment
+The app uses a reusable API layer:
 
-The trained model is served through a FastAPI backend. The API provides endpoints for best XI predictions, top players, and searchable player data used by the iOS app.
+- `APIClient` handles HTTP requests and decoding.
+- `FPLInsightAPIProtocol` keeps screens and repositories testable.
+- `FPLInsightAPI` contains live backend endpoints.
+- `FallbackFPLInsightAPI` checks network state and falls back to mock data when needed.
+- `MockFPLInsightAPI` and `MockFPLInsightData` keep offline demo data separate from production networking.
 
-Backend and deployment work included:
+Fallback behavior:
 
-- FastAPI service for model inference and player data endpoints.
-- Docker containerization for repeatable deployment.
-- AWS deployment for hosting the backend service.
-- JSON API responses designed for direct Swift decoding.
-- Query-based filtering for player search and position-specific selection.
+```text
+No internet -> show offline mock data
+Internet available -> try live API
+Live API fails -> show offline mock data
+```
 
-Example endpoint used by the iOS app:
+## Machine Learning and Backend
+
+I trained the prediction model from scratch using `XGBRegressor`. The ML work included data cleaning, feature extraction, feature engineering, model comparison, hyperparameter tuning, and evaluation before exposing predictions through an API.
+
+The backend is built with FastAPI, containerized with Docker, and deployed on AWS. It serves prediction and player endpoints used by the iOS app, including Best XI predictions, top players, searchable players, and position-based filtering.
+
+Example endpoint:
 
 ```http
 GET /api/v1/predictions/best-xi
 ```
 
-## Main Screens
+## Tech Stack
 
-### Best XI
-
-Shows the model-recommended squad on a football pitch. Players are grouped by position and displayed with predicted points, opponent, and image.
-
-### Top Players
-
-Shows the highest-performing players with pagination. The app loads 20 players at a time to keep the screen responsive and API usage efficient.
-
-### My Team
-
-Lets the user build a personal team. The screen supports formation selection, player search, position validation, bench slots, predicted point totals, and offline player saving with SwiftData.
-
-## API Integration
-
-The app uses a generic API client for reusable request handling:
-
-- Validates URLs.
-- Adds JSON accept headers.
-- Checks HTTP status codes.
-- Decodes responses into Swift models.
-- Surfaces meaningful API errors to the UI.
-
-Feature-specific calls are kept inside `FPLInsightAPI`, which keeps endpoint details out of the UI layer.
-
-The app also defines `FPLInsightAPIProtocol`, so data layers and view models are not tightly coupled to the live API implementation. This makes the architecture easier to test and keeps networking replaceable.
-
-## Offline Persistence
-
-My Team player selections are saved locally with SwiftData. The app defines a `SavedSquadPlayer` model and registers it in the app-level model container. When the My Team screen appears, it loads saved players from SwiftData and places them back into the correct pitch or bench slots.
-
-Formation is saved separately in `UserDefaults` because it is a single lightweight preference.
+- Swift, SwiftUI
+- MVVM and Clean Architecture for Best XI
+- `NavigationStack`, `TabView`
+- `async/await`
+- Protocol-oriented API integration
+- SwiftData, `UserDefaults`
+- Network framework with `NWPathMonitor`
+- Swift Testing
+- FastAPI, Docker, AWS
+- XGBoost / `XGBRegressor`
 
 ## Testing
 
-The project includes focused unit tests for `BestXIViewModel` using Swift Testing. The tests use a mock Best XI use case to verify both success and failure states without calling the real backend.
+The project includes focused unit tests for `BestXIViewModel`. Tests inject a mock use case to verify loading, success, and failure states without calling the real backend.
 
-## What This Project Demonstrates
+Run tests:
 
-- Building a production-style SwiftUI app from a real API.
-- Structuring an iOS project around features, models, and services.
-- Applying Clean Architecture gradually to one feature without overengineering the whole app.
-- Using protocol-based dependency injection for API access.
-- Saving app data offline with SwiftData.
-- Writing focused Swift Testing unit tests.
-- Consuming ML predictions in a mobile product.
-- Designing user flows around real football/FPL decision making.
-- Training and deploying a custom ML model.
-- Connecting ML, backend, cloud deployment, and iOS into one complete project.
+```bash
+xcodebuild test -project 'FPL Insight.xcodeproj' -scheme 'FPL Insight' -destination 'platform=iOS Simulator,name=iPhone 16' '-only-testing:FPL InsightTests'
+```
 
-## Future Improvements
+## What This Demonstrates
 
-- Add authentication and cloud sync for saved teams.
-- Add player detail screens with historical stats and prediction explanation.
-- Add transfer recommendations based on user budget.
-- Add captain and vice-captain optimization.
-- Add more unit tests for My Team formation and persistence logic.
+- Building a real SwiftUI app from API-driven data.
+- Applying clean architecture where it adds value.
+- Using dependency injection and protocols for testable iOS code.
+- Designing offline-friendly app behavior.
+- Persisting user data locally with SwiftData.
+- Turning an ML model into a usable mobile product.
+- Owning the full path from ML training to backend deployment to iOS implementation.
 
 ## Author
 
-Built by Shimanto A. as an end-to-end ML and iOS portfolio project.
+Developed by Md Afser Uddin.
