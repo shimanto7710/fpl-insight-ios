@@ -1,3 +1,8 @@
+//
+//  FPL Insight
+//  MyTeamModels.swift
+//  Developed by Md Afser Uddin
+//
 struct SquadSlot: Identifiable, Codable, Equatable {
     let id: Int
     let role: SlotRole

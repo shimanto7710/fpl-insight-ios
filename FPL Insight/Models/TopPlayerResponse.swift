@@ -1,3 +1,8 @@
+//
+//  FPL Insight
+//  TopPlayerResponse.swift
+//  Developed by Md Afser Uddin
+//
 struct TopPlayerResponse: Codable {
     let season: Int
     let gameweek: Int

@@ -1,3 +1,8 @@
+//
+//  FPL Insight
+//  AllPlayersResponse.swift
+//  Developed by Md Afser Uddin
+//
 struct AllPlayersResponse: Codable {
     let season, gameweek: Int
     let query: String?

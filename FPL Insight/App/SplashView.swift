@@ -1,3 +1,8 @@
+//
+//  FPL Insight
+//  SplashView.swift
+//  Developed by Md Afser Uddin
+//
 import SwiftUI
 
 struct SplashView: View {
