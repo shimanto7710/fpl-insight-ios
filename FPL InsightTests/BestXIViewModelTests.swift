@@ -1,17 +1,10 @@
-//
-//  BestXIViewModelTests.swift
-//  FPL InsightTests
-//
-//  Created by Shimanto A. on 2/5/26.
-//
-
 import Testing
 @testable import FPL_Insight
 
 @MainActor
 struct BestXIViewModelTests {
     @Test func loadBestXIStoresLoadedResponse() async {
-        let viewModel = BestXIViewModel(api: MockFPLInsightAPI())
+        let viewModel = BestXIViewModel(fetchBestXIUseCase: MockFetchBestXIUseCase())
 
         await viewModel.loadBestXI()
 
@@ -25,8 +18,8 @@ struct BestXIViewModelTests {
     }
 
     @Test func loadBestXIStoresFailureMessage() async {
-        let api = MockFPLInsightAPI(bestXIResult: .failure(TestError.failed))
-        let viewModel = BestXIViewModel(api: api)
+        let useCase = MockFetchBestXIUseCase(result: .failure(TestError.failed))
+        let viewModel = BestXIViewModel(fetchBestXIUseCase: useCase)
 
         await viewModel.loadBestXI()
 

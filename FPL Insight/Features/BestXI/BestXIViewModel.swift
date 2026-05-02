@@ -1,10 +1,3 @@
-//
-//  BestXIViewModel.swift
-//  FPL Insight
-//
-//  Created by Shimanto A. on 23/4/26.
-//
-
 import Combine
 import Foundation
 
@@ -12,17 +5,17 @@ import Foundation
 final class BestXIViewModel: ObservableObject {
     @Published private(set) var state: BestXIState = .loading
 
-    private let api: any FPLInsightAPIProtocol
+    private let fetchBestXIUseCase: any FetchBestXIUseCaseProtocol
 
-    init(api: any FPLInsightAPIProtocol = FPLInsightAPI()) {
-        self.api = api
+    init(fetchBestXIUseCase: any FetchBestXIUseCaseProtocol = FetchBestXIUseCase()) {
+        self.fetchBestXIUseCase = fetchBestXIUseCase
     }
 
     func loadBestXI() async {
         state = .loading
 
         do {
-            let bestXI = try await api.fetchBestXI()
+            let bestXI = try await fetchBestXIUseCase.execute()
             state = .loaded(bestXI)
         } catch {
             state = .failed(error.localizedDescription)

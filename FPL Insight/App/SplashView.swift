@@ -1,10 +1,3 @@
-//
-//  SplashView.swift
-//  FPL Insight
-//
-//  Created by Shimanto A. on 23/4/26.
-//
-
 import SwiftUI
 
 struct SplashView: View {

@@ -1,44 +1,19 @@
-//
-//  TestSupport.swift
-//  FPL InsightTests
-//
-//  Created by Shimanto A. on 2/5/26.
-//
-
 import Foundation
 @testable import FPL_Insight
 
-struct MockFPLInsightAPI: FPLInsightAPIProtocol {
-    var bestXIResult: Result<BestXIResponse, Error> = .success(TestData.bestXIResponse)
+struct MockFetchBestXIUseCase: FetchBestXIUseCaseProtocol {
+    var result: Result<BestXIResponse, Error> = .success(TestData.bestXIResponse)
 
-    func fetchBestXI() async throws -> BestXIResponse {
-        try bestXIResult.get()
-    }
-
-    func fetchTopPlayers(limit: Int) async throws -> TopPlayerResponse {
-        throw TestError.notImplemented
-    }
-
-    func fetchAllPlayers(
-        limit: Int,
-        q: String?,
-        position: String?
-    ) async throws -> AllPlayersResponse {
-        throw TestError.notImplemented
+    func execute() async throws -> BestXIResponse {
+        try result.get()
     }
 }
 
 enum TestError: LocalizedError {
     case failed
-    case notImplemented
 
     var errorDescription: String? {
-        switch self {
-        case .failed:
-            "Test failure"
-        case .notImplemented:
-            "This mock method is not used in this test."
-        }
+        "Test failure"
     }
 }
 

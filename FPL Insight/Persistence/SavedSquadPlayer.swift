@@ -1,11 +1,3 @@
-//
-//  SavedSquadPlayer.swift
-//  FPL Insight
-//
-//  Created by Shimanto A. on 2/5/26.
-//
-
-import Foundation
 import SwiftData
 
 @Model

@@ -1,10 +1,3 @@
-//
-//  MyTeamPickerViews.swift
-//  FPL Insight
-//
-//  Created by Shimanto A. on 1/5/26.
-//
-
 import SwiftUI
 
 struct PlayerPickerView: View {

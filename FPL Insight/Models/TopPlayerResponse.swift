@@ -1,12 +1,3 @@
-//
-//  TopPlayerResponse.swift
-//  FPL Insight
-//
-//  Created by Shimanto A. on 1/5/26.
-//
-
-import Foundation
-
 struct TopPlayerResponse: Codable {
     let season: Int
     let gameweek: Int

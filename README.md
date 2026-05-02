@@ -9,6 +9,7 @@ This project showcases the full path from model development to product: I built 
 I recently improved the iOS architecture to make the app easier to maintain, test, and extend:
 
 - Added protocol-based API integration with `FPLInsightAPIProtocol`.
+- Applied Clean Architecture to the Best XI feature with use case and repository layers.
 - Updated view models to depend on the API protocol instead of the concrete API implementation.
 - Added SwiftData offline storage for saved My Team players.
 - Kept formation as a lightweight `UserDefaults` preference.
@@ -42,6 +43,7 @@ The app focuses on making ML predictions useful for a real user instead of only 
 - Swift
 - SwiftUI
 - MVVM-style feature structure
+- Clean Architecture for the Best XI prediction flow
 - `NavigationStack` and `TabView`
 - `async/await` networking
 - Generic API client
@@ -67,6 +69,11 @@ FPL Insight/
 |   +-- BestXI/
 |   +-- MyTeam/
 |   +-- TopPlayers/
++-- Domain/
+|   +-- Repositories/
+|   +-- UseCases/
++-- Data/
+|   +-- Repositories/
 +-- Models/
 +-- Persistence/
 +-- Services/
@@ -74,7 +81,21 @@ FPL Insight/
 
 `HomeView` owns the bottom tab navigation. Each tab uses its own `NavigationStack`, which keeps navigation isolated per screen. Networking is handled through a reusable `APIClient`, while `FPLInsightAPI` contains the app-specific endpoints.
 
-View models depend on `FPLInsightAPIProtocol`, which means the real API can be replaced with a mock API in tests or previews without changing screen logic. My Team players are saved with SwiftData through a `SavedSquadPlayer` model, so the selected squad can be restored offline.
+Best XI uses a Clean Architecture flow so the screen does not depend directly on networking:
+
+```text
+BestXIView
+-> BestXIViewModel
+-> FetchBestXIUseCase
+-> BestXIRepository
+-> BestXIRepositoryImpl
+-> FPLInsightAPIProtocol
+-> APIClient
+```
+
+This keeps the UI focused on presentation, the use case focused on app behavior, the repository focused on data access, and the API client focused on HTTP requests. Other features use a simpler MVVM structure where that level of separation is not yet needed.
+
+My Team players are saved with SwiftData through a `SavedSquadPlayer` model, so the selected squad can be restored offline.
 
 ## Machine Learning Pipeline
 
@@ -133,9 +154,9 @@ The app uses a generic API client for reusable request handling:
 - Decodes responses into Swift models.
 - Surfaces meaningful API errors to the UI.
 
-Feature-specific calls are kept inside `FPLInsightAPI`, which makes the view models simpler and keeps endpoint details out of the UI layer.
+Feature-specific calls are kept inside `FPLInsightAPI`, which keeps endpoint details out of the UI layer.
 
-The app also defines `FPLInsightAPIProtocol`, so view models are not tightly coupled to the live API implementation. This makes the architecture easier to test and keeps networking replaceable.
+The app also defines `FPLInsightAPIProtocol`, so data layers and view models are not tightly coupled to the live API implementation. This makes the architecture easier to test and keeps networking replaceable.
 
 ## Offline Persistence
 
@@ -145,12 +166,13 @@ Formation is saved separately in `UserDefaults` because it is a single lightweig
 
 ## Testing
 
-The project includes focused unit tests for `BestXIViewModel` using Swift Testing. The tests use a mock API implementation to verify both success and failure states without calling the real backend.
+The project includes focused unit tests for `BestXIViewModel` using Swift Testing. The tests use a mock Best XI use case to verify both success and failure states without calling the real backend.
 
 ## What This Project Demonstrates
 
 - Building a production-style SwiftUI app from a real API.
 - Structuring an iOS project around features, models, and services.
+- Applying Clean Architecture gradually to one feature without overengineering the whole app.
 - Using protocol-based dependency injection for API access.
 - Saving app data offline with SwiftData.
 - Writing focused Swift Testing unit tests.

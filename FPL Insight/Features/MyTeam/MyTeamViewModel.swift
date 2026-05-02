@@ -1,10 +1,3 @@
-//
-//  MyTeamViewModel.swift
-//  FPL Insight
-//
-//  Created by Shimanto A. on 30/4/26.
-//
-
 import Combine
 import Foundation
 import SwiftData

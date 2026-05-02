@@ -1,12 +1,3 @@
-//
-//  MyTeamModels.swift
-//  FPL Insight
-//
-//  Created by Shimanto A. on 1/5/26.
-//
-
-import Foundation
-
 struct SquadSlot: Identifiable, Codable, Equatable {
     let id: Int
     let role: SlotRole
