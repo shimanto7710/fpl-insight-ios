@@ -6,10 +6,14 @@
 import Foundation
 
 struct FPLInsightAPI: FPLInsightAPIProtocol {
-    private let baseURL = "http://127.0.0.1:8000"
+    private let baseURL: String
     private let apiClient: APIClient
 
-    init(apiClient: APIClient = .shared) {
+    init(
+        apiEnvironment: APIEnvironment = AppConfiguration.apiEnvironment,
+        apiClient: APIClient = .shared
+    ) {
+        self.baseURL = apiEnvironment.baseURL
         self.apiClient = apiClient
     }
 
